@@ -1,28 +1,58 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { AddCustomerPage } from '../../../src/pages/manager/AddCustomerPage';
 
-test('Assert manager can add new customer', async ({ page }) => {
-/* 
-Test:
-1. Open add customer page by link https://www.globalsqa.com/angularJs-protractor/BankingProject/#/manager/addCust
-2. Fill the First Name.  
-3. Fill the Last Name.
-4. Fill the Postal Code.
-5. Click [Add Customer].
-6. Reload the page (This is a simplified step to close the popup)
-7. Click [Customers] button.
-8. Assert the First Name of the customer is present in the table in the last row. 
-9. Assert the Last Name of the customer is present in the table in the last row. 
-10. Assert the Postal Code of the customer is present in the table in the last row. 
-11. Assert there is no account number for the new customer in the table in the last row. 
+test('Manager can add new customer', async ({ page }) => {
+  // 1–3. Generate random customer data
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();
+  const postCode = faker.location.zipCode();
 
-Tips:
-1. Use faker for test data generation, example:
-usage:
- const firstName = faker.person.firstName();
- const lastName = faker.person.LastName();
- const postCode = faker.location.zipCode(); 
+  // 4. Navigate to the "Add Customer" page
+  await page.goto('https://www.globalsqa.com/angularJs-protractor/BankingProject/#/manager/addCust');
 
- 2. Do not rely on the customer row id for the steps 8-11. Use the ".last()" locator to get the last row.
-*/
+  // 5. Add new customer using POM
+  const addCustomerPage = new AddCustomerPage(page);
+  await addCustomerPage.addCustomer(firstName, lastName, postCode);
+
+  // 6. Accept the alert popup
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('Customer added successfully');
+    await dialog.accept();
+  });
+
+  // 7. Reload page to avoid stale data
+  await page.reload();
+
+  // 8. Go to the "Customers" page
+  await page.getByText('Customers').click();
+
+  // 9. Wait until customer table is visible
+  await page.waitForSelector('table tbody tr');
+
+  // 10. Try to find the newly added customer
+  const tableRows = await page.locator('table tbody tr');
+  const rowCount = await tableRows.count();
+
+  let found = false;
+
+  for (let i = 0; i < rowCount; i++) {
+    const row = tableRows.nth(i);
+    const textContent = await row.innerText();
+
+    if (
+      textContent.includes(firstName) &&
+      textContent.includes(lastName) &&
+      textContent.includes(postCode)
+    ) {
+      // 11. Assert that account number is still empty
+      const accountCell = row.locator('td').nth(3);
+      await expect(accountCell).toHaveText('');
+      found = true;
+      break;
+    }
+  }
+
+  // 12. Assert that the customer was actually found
+  expect(found).toBeTruthy();
 });
