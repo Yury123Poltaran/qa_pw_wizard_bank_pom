@@ -11,6 +11,14 @@ export class AddCustomerPage {
     await this.firstNameInput.fill(firstName);
     await this.lastNameInput.fill(lastName);
     await this.postCodeInput.fill(postCode);
+
+    
+    const dialogPromise = this.page.waitForEvent('dialog');
     await this.addCustomerButton.click();
+    const dialog = await dialogPromise;
+
+    await dialog.accept();
   }
 }
+
+

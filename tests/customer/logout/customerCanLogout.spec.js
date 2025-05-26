@@ -1,7 +1,8 @@
 import { test } from '@playwright/test';
 import { BankHomePage } from '../../../src/pages/BankHomePage';
 import { CustomerLoginPage } from '../../../src/pages/customer/CustomerLoginPage';
-import { CustomerAccountPage } from '../../../src/pages/customer/CustomerAccountPage';
+import CustomerAccountPage from '../../../src/pages/customer/CustomerAccountPage';
+
 
 test('Assert correct customer Logout ', async ({ page }) => {
 /* 

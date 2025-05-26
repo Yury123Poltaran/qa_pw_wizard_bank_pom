@@ -32,3 +32,5 @@ export class CustomerLoginPage {
     expect(currentOptionText).toBe(value);
   }
 }
+
+   export default CustomerLoginPage;
